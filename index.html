@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Login App OOP</title>
+<title>Login OOP Basic</title>
 
 <style>
     * {
@@ -26,7 +26,6 @@
         background: rgba(255,255,255,0.15);
         backdrop-filter: blur(15px);
         box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        animation: fadeIn 0.8s ease;
     }
 
     h2 {
@@ -34,13 +33,10 @@
         text-align: center;
     }
 
-    .input-group {
-        margin: 18px 0;
-    }
-
     input {
         width: 100%;
         padding: 12px;
+        margin: 15px 0;
         border-radius: 12px;
         border: none;
         outline: none;
@@ -56,7 +52,6 @@
         background: linear-gradient(135deg, #00f2fe, #4facfe);
         font-weight: bold;
         cursor: pointer;
-        margin-top: 10px;
     }
 
     .dashboard {
@@ -66,13 +61,9 @@
     }
 
     .logout {
+        margin-top: 15px;
         background: linear-gradient(135deg, #ff416c, #ff4b2b);
         color: #fff;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 </head>
@@ -81,12 +72,8 @@
 <!-- LOGIN -->
 <div class="glass" id="loginBox">
     <h2>Login</h2>
-    <div class="input-group">
-        <input type="text" id="username" placeholder="Username">
-    </div>
-    <div class="input-group">
-        <input type="password" id="password" placeholder="Password">
-    </div>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
     <button id="loginBtn">Login</button>
 </div>
 
@@ -99,93 +86,87 @@
 
 <script>
 /* =========================
-   CLASS AuthService
+   CLASS USER
 ========================= */
-class AuthService {
-    constructor() {
-        this.initUsers();
-        this.users = JSON.parse(localStorage.getItem("users"));
+class User {
+    constructor(username, password) {
+        this.username = username;
+        this.password = password;
+    }
+}
+
+/* =========================
+   CLASS AUTH
+========================= */
+class Auth {
+    constructor(users) {
+        this.users = users;
     }
 
-    initUsers() {
-        const users = [
-            { username: "udin", password: "udin123" },
-            { username: "fahri", password: "fahri123" }
-        ];
-        localStorage.setItem("users", JSON.stringify(users));
-    }
-
-    authenticate(username, password) {
+    login(username, password) {
         return this.users.find(
-            u => u.username === username && u.password === password
+            user => user.username === username && user.password === password
         );
     }
 }
 
 /* =========================
-   CLASS AppController
+   CLASS UI
 ========================= */
-class AppController {
-    constructor() {
-        this.auth = new AuthService();
-
-        this.loginBox = document.getElementById("loginBox");
-        this.dashboardBox = document.getElementById("dashboardBox");
-        this.welcomeText = document.getElementById("welcome");
-
-        this.usernameInput = document.getElementById("username");
-        this.passwordInput = document.getElementById("password");
-
-        this.loginBtn = document.getElementById("loginBtn");
-        this.logoutBtn = document.getElementById("logoutBtn");
-
-        this.registerEvents();
-        this.autoLogin();
-    }
-
-    registerEvents() {
-        this.loginBtn.addEventListener("click", () => this.login());
-        this.logoutBtn.addEventListener("click", () => this.logout());
-    }
-
-    login() {
-        const username = this.usernameInput.value.trim();
-        const password = this.passwordInput.value.trim();
-
-        const user = this.auth.authenticate(username, password);
-
-        if (!user) {
-            alert("Username atau password salah!");
-            return;
-        }
-
-        localStorage.setItem("isLogin", "true");
-        localStorage.setItem("loggedUser", user.username);
-        this.showDashboard(user.username);
-    }
-
+class UI {
     showDashboard(username) {
-        this.loginBox.style.display = "none";
-        this.dashboardBox.style.display = "block";
-        this.welcomeText.innerText = `Halo, ${username} 👋`;
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("dashboardBox").style.display = "block";
+        document.getElementById("welcome").innerText =
+            "Halo, " + username + " 👋";
     }
 
     logout() {
         localStorage.clear();
         location.reload();
     }
-
-    autoLogin() {
-        if (localStorage.getItem("isLogin") === "true") {
-            this.showDashboard(localStorage.getItem("loggedUser"));
-        }
-    }
 }
 
 /* =========================
-   INIT APP (OBJECT)
+   OBJECT (INSTANCE)
 ========================= */
-new AppController();
+const user1 = new User("udin", "udin123");
+const user2 = new User("fahri", "fahri123");
+
+const users = [user1, user2];
+
+const auth = new Auth(users);
+const ui = new UI();
+
+/* =========================
+   EVENT HANDLER (OOP STYLE)
+========================= */
+document.getElementById("loginBtn").addEventListener("click", () => {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    const result = auth.login(username, password);
+
+    if (!result) {
+        alert("Username atau password salah!");
+        return;
+    }
+
+    localStorage.setItem("isLogin", "true");
+    localStorage.setItem("loggedUser", result.username);
+    ui.showDashboard(result.username);
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => {
+    ui.logout();
+});
+
+/* =========================
+   AUTO LOGIN
+========================= */
+if (localStorage.getItem("isLogin") === "true") {
+    ui.showDashboard(localStorage.getItem("loggedUser"));
+}
 </script>
 
 </body>
