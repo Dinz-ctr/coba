@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Fahri Husen Udin</title>
+<title>Login App OOP</title>
 
 <style>
     * {
@@ -31,15 +31,14 @@
 
     h2 {
         color: #fff;
-        margin-bottom: 20px;
         text-align: center;
     }
 
     .input-group {
-        margin-bottom: 18px;
+        margin: 18px 0;
     }
 
-    .input-group input {
+    input {
         width: 100%;
         padding: 12px;
         border-radius: 12px;
@@ -49,7 +48,7 @@
         color: #fff;
     }
 
-    .btn {
+    button {
         width: 100%;
         padding: 12px;
         border-radius: 14px;
@@ -57,6 +56,7 @@
         background: linear-gradient(135deg, #00f2fe, #4facfe);
         font-weight: bold;
         cursor: pointer;
+        margin-top: 10px;
     }
 
     .dashboard {
@@ -66,7 +66,6 @@
     }
 
     .logout {
-        margin-top: 15px;
         background: linear-gradient(135deg, #ff416c, #ff4b2b);
         color: #fff;
     }
@@ -88,28 +87,27 @@
     <div class="input-group">
         <input type="password" id="password" placeholder="Password">
     </div>
-    <button class="btn" onclick="loginHandler()">Login</button>
+    <button id="loginBtn">Login</button>
 </div>
 
 <!-- DASHBOARD -->
 <div class="glass dashboard" id="dashboardBox">
     <h2 id="welcome"></h2>
     <p>Anda berhasil login 🚀</p>
-    <button class="btn logout" onclick="logout()">Logout</button>
+    <button class="logout" id="logoutBtn">Logout</button>
 </div>
 
 <script>
-/* ======================
-   AUTH CLASS
-====================== */
-class Auth {
+/* =========================
+   CLASS AuthService
+========================= */
+class AuthService {
     constructor() {
         this.initUsers();
         this.users = JSON.parse(localStorage.getItem("users"));
     }
 
     initUsers() {
-        // DATA LOGIN SESUAI PERMINTAAN
         const users = [
             { username: "udin", password: "udin123" },
             { username: "fahri", password: "fahri123" }
@@ -117,60 +115,77 @@ class Auth {
         localStorage.setItem("users", JSON.stringify(users));
     }
 
-    login(username, password) {
+    authenticate(username, password) {
         return this.users.find(
             u => u.username === username && u.password === password
         );
     }
 }
 
-const auth = new Auth();
+/* =========================
+   CLASS AppController
+========================= */
+class AppController {
+    constructor() {
+        this.auth = new AuthService();
 
-/* ======================
-   LOGIN
-====================== */
-function loginHandler() {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
+        this.loginBox = document.getElementById("loginBox");
+        this.dashboardBox = document.getElementById("dashboardBox");
+        this.welcomeText = document.getElementById("welcome");
 
-    const user = auth.login(username, password);
+        this.usernameInput = document.getElementById("username");
+        this.passwordInput = document.getElementById("password");
 
-    if (!user) {
-        alert("Username atau password salah!");
-        return;
+        this.loginBtn = document.getElementById("loginBtn");
+        this.logoutBtn = document.getElementById("logoutBtn");
+
+        this.registerEvents();
+        this.autoLogin();
     }
 
-    localStorage.setItem("isLogin", "true");
-    localStorage.setItem("loggedUser", user.username);
-    showDashboard(user.username);
-}
-
-/* ======================
-   DASHBOARD
-====================== */
-function showDashboard(username) {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("dashboardBox").style.display = "block";
-    document.getElementById("welcome").innerText =
-        "Halo, " + username + " 👋";
-}
-
-/* ======================
-   LOGOUT
-====================== */
-function logout() {
-    localStorage.clear();
-    location.reload();
-}
-
-/* ======================
-   AUTO LOGIN
-====================== */
-window.onload = function () {
-    if (localStorage.getItem("isLogin") === "true") {
-        showDashboard(localStorage.getItem("loggedUser"));
+    registerEvents() {
+        this.loginBtn.addEventListener("click", () => this.login());
+        this.logoutBtn.addEventListener("click", () => this.logout());
     }
-};
+
+    login() {
+        const username = this.usernameInput.value.trim();
+        const password = this.passwordInput.value.trim();
+
+        const user = this.auth.authenticate(username, password);
+
+        if (!user) {
+            alert("Username atau password salah!");
+            return;
+        }
+
+        localStorage.setItem("isLogin", "true");
+        localStorage.setItem("loggedUser", user.username);
+        this.showDashboard(user.username);
+    }
+
+    showDashboard(username) {
+        this.loginBox.style.display = "none";
+        this.dashboardBox.style.display = "block";
+        this.welcomeText.innerText = `Halo, ${username} 👋`;
+    }
+
+    logout() {
+        localStorage.clear();
+        location.reload();
+    }
+
+    autoLogin() {
+        if (localStorage.getItem("isLogin") === "true") {
+            this.showDashboard(localStorage.getItem("loggedUser"));
+        }
+    }
+}
+
+/* =========================
+   INIT APP (OBJECT)
+========================= */
+new AppController();
 </script>
 
 </body>
